@@ -2,7 +2,8 @@
 -- email:valarmor@163.com
 -- https://github.com/maoiscat/mpv-osc-morden
 
--- fork by cyl0
+-- fork by gin based on cyl0's fork
+-- https://github.com/gingkapls/MordenX
 -- https://github.com/cyl0/mpv-osc-morden-x
 
 local assdraw = require 'mp.assdraw'
@@ -31,7 +32,7 @@ local user_opts = {
     iamaprogrammer = false,     -- use native mpv values and disable OSC
                                 -- internal track list management (and some
                                 -- functions that depend on it)
-    font = 'mpv-osd-symbols',	-- default osc font
+    font = 'material-design-icons',	-- default osc font
     seekbarhandlesize = 1.0,	-- size ratio of the slider handle, range 0 ~ 1
     seekrange = true,		-- show seekrange overlay
     seekrangealpha = 64,      	-- transparency of seekranges
@@ -58,11 +59,26 @@ local user_opts = {
 
 -- Icons for jump button depending on jumpamount 
 local jumpicons = { 
-    [5] = {'\xEF\x8E\xB1', '\xEF\x8E\xA3'}, 
-    [10] = {'\xEF\x8E\xAF', '\xEF\x8E\xA1'}, 
-    [30] = {'\xEF\x8E\xB0', '\xEF\x8E\xA2'}, 
-    default = {'\xEF\x8E\xB2', '\xEF\x8E\xB2'}, -- second icon is mirrored in layout() 
+    [5] = {'', ''}, 
+    [10] = {'', ''}, 
+    [30] = {'', ''}, 
+    default = {'', ''}, -- second icon is mirrored in layout() 
 } 
+
+local icons = {
+  play = '',
+  pause = '',
+  next = '',
+  previous = '',
+  list = '',
+  minimize = '',
+  fullscreen = '',
+  audio = '',
+  sub = '',
+  forward = '',
+  backward = '',
+  info = '',
+}
 
 -- Localization
 local language = {
@@ -113,14 +129,14 @@ local osc_styles = {
     TransBg = '{\\blur100\\bord150\\1c&H000000&\\3c&H000000&}',
     SeekbarBg = '{\\blur0\\bord0\\1c&HFFFFFF&}',
     SeekbarFg = '{\\blur1\\bord1\\1c&HE39C42&}',
-    Ctrl1 = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs36\\fnmaterial-design-iconic-font}',
-    Ctrl2 = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs24\\fnmaterial-design-iconic-font}',
-    Ctrl2Flip = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs24\\fnmaterial-design-iconic-font\\fry180',
-    Ctrl3 = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs24\\fnmaterial-design-iconic-font}',
+    Ctrl1 = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs36\\fn' .. user_opts.font .. '}',
+    Ctrl2 = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs24\\fn' .. user_opts.font .. '}',
+    Ctrl2Flip = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs24\\fn' .. user_opts.font .. '\\fry180}',
+    Ctrl3 = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&HFFFFFF&\\fs24\\fn' .. user_opts.font .. '}',
     Time = '{\\blur0\\bord0\\1c&HFFFFFF&\\3c&H000000&\\fs17\\fn' .. user_opts.font .. '}',
     Tooltip = '{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H000000&\\fs18\\fn' .. user_opts.font .. '}',
     Title = '{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H0\\fs38\\q2\\fn' .. user_opts.font .. '}',
-    WinCtrl = '{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H0\\fs20\\fnmpv-osd-symbols}',
+    WinCtrl = '{\\blur1\\bord0.5\\1c&HFFFFFF&\\3c&H0\\fs20\\fn' .. user_opts.font .. '}',
     elementDown = '{\\1c&H999999&}',
     elementHighlight = '{\\blur1\\bord1\\1c&HFFC033&}',
 }
@@ -1284,7 +1300,7 @@ function osc_init()
     -- prev
     ne = new_element('pl_prev', 'button')
 
-    ne.content = '\xEF\x8E\xB5'
+    ne.content = icons.previous
     ne.enabled = (pl_pos > 1) or (loop ~= 'no')
     ne.eventresponder['mbtn_left_up'] =
         function ()
@@ -1296,7 +1312,7 @@ function osc_init()
     --next
     ne = new_element('pl_next', 'button')
 
-    ne.content = '\xEF\x8E\xB4'
+    ne.content = icons.next
     ne.enabled = (have_pl and (pl_pos < pl_count)) or (loop ~= 'no')
     ne.eventresponder['mbtn_left_up'] =
         function ()
@@ -1312,9 +1328,9 @@ function osc_init()
 
     ne.content = function ()
         if mp.get_property('pause') == 'yes' then
-            return ('\xEF\x8E\xAA')
+            return (icons.play)
         else
-            return ('\xEF\x8E\xA7')
+            return (icons.pause)
         end
     end
     ne.eventresponder['mbtn_left_up'] =
@@ -1371,7 +1387,7 @@ function osc_init()
     ne = new_element('skipback', 'button')
 
     ne.softrepeat = true
-    ne.content = '\xEF\x8E\xA0'
+    ne.content = icons.backward
     ne.enabled = (have_ch) -- disables button when no chapters available.
     ne.eventresponder['mbtn_left_down'] =
         --function () mp.command('seek -5') end
@@ -1392,7 +1408,7 @@ function osc_init()
     ne = new_element('skipfrwd', 'button')
 
     ne.softrepeat = true
-    ne.content = '\xEF\x8E\x9F'
+    ne.content = icons.forward
     ne.enabled = (have_ch) -- disables button when no chapters available.
     ne.eventresponder['mbtn_left_down'] =
         --function () mp.command('seek +5') end
@@ -1417,7 +1433,7 @@ function osc_init()
     ne.enabled = (#tracks_osc.audio > 0)
     ne.off = (get_track('audio') == 0)
     ne.visible = (osc_param.playresx >= 540)
-    ne.content = '\xEF\x8E\xB7'
+    ne.content = icons.audio
     ne.tooltip_style = osc_styles.Tooltip
     ne.tooltipF = function ()
 		local msg = texts.off
@@ -1450,7 +1466,7 @@ function osc_init()
     ne.enabled = (#tracks_osc.sub > 0)
     ne.off = (get_track('sub') == 0)
     ne.visible = (osc_param.playresx >= 600)
-    ne.content = '\xEF\x8F\x93'
+    ne.content = icons.sub
     ne.tooltip_style = osc_styles.Tooltip
     ne.tooltipF = function ()
 		local msg = texts.off
@@ -1482,9 +1498,9 @@ function osc_init()
     ne = new_element('tog_fs', 'button')
     ne.content = function ()
         if (state.fullscreen) then
-            return ('\xEF\x85\xAC')
+            return (icons.minimize)
         else
-            return ('\xEF\x85\xAD')
+            return (icons.fullscreen)
         end
     end
     ne.visible = (osc_param.playresx >= 540)
@@ -1493,7 +1509,7 @@ function osc_init()
 
     --tog_info
     ne = new_element('tog_info', 'button')
-    ne.content = ''
+    ne.content = icons.info
     ne.visible = (osc_param.playresx >= 600)
     ne.eventresponder['mbtn_left_up'] =
         function () mp.commandv('script-binding', 'stats/display-stats-toggle') end
@@ -2523,3 +2539,4 @@ mp.add_key_binding(nil, 'visibility', function() visibility_mode('cycle') end)
 
 set_virt_mouse_area(0, 0, 0, 0, 'input')
 set_virt_mouse_area(0, 0, 0, 0, 'window-controls')
+
